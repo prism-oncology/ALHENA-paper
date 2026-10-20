@@ -1,0 +1,121 @@
+{
+  "HALLMARK_HYPOXIA": {
+    "category": "MSigDB Hallmark",
+    "collection": "h.all",
+    "msigdb_version": "v2024.1.Hs",
+    "msigdb_file": "h.all.v2024.1.Hs.symbols.gmt",
+    "msigdb_url": "https://www.gsea-msigdb.org/gsea/msigdb/human/geneset/HALLMARK_HYPOXIA.html",
+    "download_url": "https://data.broadinstitute.org/gsea-msigdb/msigdb/release/2024.1.Hs/h.all.v2024.1.Hs.symbols.gmt",
+    "citation": "Liberzon et al., Cell Systems 2015, 1(6):417-425",
+    "doi": "10.1016/j.cels.2015.12.004",
+    "n_genes": 200
+  },
+  "HALLMARK_ANGIOGENESIS": {
+    "category": "MSigDB Hallmark",
+    "collection": "h.all",
+    "msigdb_version": "v2024.1.Hs",
+    "msigdb_file": "h.all.v2024.1.Hs.symbols.gmt",
+    "msigdb_url": "https://www.gsea-msigdb.org/gsea/msigdb/human/geneset/HALLMARK_ANGIOGENESIS.html",
+    "download_url": "https://data.broadinstitute.org/gsea-msigdb/msigdb/release/2024.1.Hs/h.all.v2024.1.Hs.symbols.gmt",
+    "citation": "Liberzon et al., Cell Systems 2015, 1(6):417-425",
+    "doi": "10.1016/j.cels.2015.12.004",
+    "n_genes": 36
+  },
+  "HALLMARK_G2M_CHECKPOINT": {
+    "category": "MSigDB Hallmark",
+    "collection": "h.all",
+    "msigdb_version": "v2024.1.Hs",
+    "msigdb_file": "h.all.v2024.1.Hs.symbols.gmt",
+    "msigdb_url": "https://www.gsea-msigdb.org/gsea/msigdb/human/geneset/HALLMARK_G2M_CHECKPOINT.html",
+    "download_url": "https://data.broadinstitute.org/gsea-msigdb/msigdb/release/2024.1.Hs/h.all.v2024.1.Hs.symbols.gmt",
+    "citation": "Liberzon et al., Cell Systems 2015, 1(6):417-425",
+    "doi": "10.1016/j.cels.2015.12.004",
+    "n_genes": 200
+  },
+  "HALLMARK_INTERFERON_GAMMA_RESPONSE": {
+    "category": "MSigDB Hallmark",
+    "collection": "h.all",
+    "msigdb_version": "v2024.1.Hs",
+    "msigdb_file": "h.all.v2024.1.Hs.symbols.gmt",
+    "msigdb_url": "https://www.gsea-msigdb.org/gsea/msigdb/human/geneset/HALLMARK_INTERFERON_GAMMA_RESPONSE.html",
+    "download_url": "https://data.broadinstitute.org/gsea-msigdb/msigdb/release/2024.1.Hs/h.all.v2024.1.Hs.symbols.gmt",
+    "citation": "Liberzon et al., Cell Systems 2015, 1(6):417-425",
+    "doi": "10.1016/j.cels.2015.12.004",
+    "n_genes": 200
+  },
+  "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION": {
+    "category": "MSigDB Hallmark",
+    "collection": "h.all",
+    "msigdb_version": "v2024.1.Hs",
+    "msigdb_file": "h.all.v2024.1.Hs.symbols.gmt",
+    "msigdb_url": "https://www.gsea-msigdb.org/gsea/msigdb/human/geneset/HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.html",
+    "download_url": "https://data.broadinstitute.org/gsea-msigdb/msigdb/release/2024.1.Hs/h.all.v2024.1.Hs.symbols.gmt",
+    "citation": "Liberzon et al., Cell Systems 2015, 1(6):417-425",
+    "doi": "10.1016/j.cels.2015.12.004",
+    "n_genes": 200
+  },
+  "T_CELL_INFLAMED_GEP": {
+    "category": "Curated immune signature",
+    "description": "18-gene T-cell-inflamed gene expression profile (Tumor Inflammation Signature)",
+    "citation": "Ayers et al., J Clin Invest 2017, 127(8):2930-2940",
+    "doi": "10.1172/JCI91190",
+    "url": "https://www.jci.org/articles/view/91190",
+    "source_location": "Table 1 / Supplementary of Ayers et al. 2017",
+    "n_genes": 18
+  },
+  "B_CELL_PLASMA": {
+    "category": "Curated immune/cell-type signature",
+    "description": "B cell / plasma cell signature derived from Bindea 2013. Contains B-cell markers (CD19, MS4A1/CD20, CR2/CD21, BLNK, TCL1A) and plasma-cell / immunoglobulin markers (IGHA1, IGHG1, IGHM, IGKC, IGL@, TNFRSF17/BCMA).",
+    "msigdb_url_referenced": "https://www.gsea-msigdb.org/gsea/msigdb/human/geneset/BINDEA_PLASMA_CELLS.html",
+    "msigdb_status": "deprecated (no longer present in MSigDB v2022.1.Hs, v2023.1.Hs, v2024.1.Hs)",
+    "fallback_source": "Bindea 2013 Supplementary Table 1, mirrored as bindea_immune.txt in Sage-Bionetworks/crc-cms-kras (https://raw.githubusercontent.com/Sage-Bionetworks/crc-cms-kras/master/bindea_immune.txt)",
+    "fallback_cell_type_in_file": "B cells",
+    "citation": "Bindea et al., Immunity 2013, 39(4):782-795",
+    "doi": "10.1016/j.immuni.2013.10.003",
+    "url": "https://www.cell.com/immunity/fulltext/S1074-7613(13)00437-8",
+    "notes": "MSigDB BINDEA_PLASMA_CELLS is deprecated. The Bindea 2013 paper does not have a separate Plasma cells category; the canonical Bindea 'B cells' signature (used here) already includes the plasma-cell-defining immunoglobulin genes. Gene symbols are kept as-is from the source mirror; legacy aliases present: KIAA0125 (= FAM30A), IGL@ (immunoglobulin lambda locus, no single HGNC symbol).",
+    "n_genes": 34
+  },
+  "MYELOID_MACROPHAGE": {
+    "category": "Curated immune/cell-type signature",
+    "description": "Macrophage signature from Bindea 2013.",
+    "msigdb_url_referenced": "https://www.gsea-msigdb.org/gsea/msigdb/human/geneset/BINDEA_MACROPHAGES.html",
+    "msigdb_status": "deprecated (no longer present in MSigDB v2022.1.Hs, v2023.1.Hs, v2024.1.Hs)",
+    "fallback_source": "Bindea 2013 Supplementary Table 1, mirrored as bindea_immune.txt in Sage-Bionetworks/crc-cms-kras (https://raw.githubusercontent.com/Sage-Bionetworks/crc-cms-kras/master/bindea_immune.txt)",
+    "fallback_cell_type_in_file": "Macrophages",
+    "citation": "Bindea et al., Immunity 2013, 39(4):782-795",
+    "doi": "10.1016/j.immuni.2013.10.003",
+    "url": "https://www.cell.com/immunity/fulltext/S1074-7613(13)00437-8",
+    "notes": "Gene symbols are kept as-is from the source mirror; legacy alias present: KAL1 (= ANOS1).",
+    "n_genes": 33
+  },
+  "TLS_CABRITA_2020": {
+    "category": "Curated niche signature",
+    "description": "9-gene tertiary lymphoid structure (TLS) imprint",
+    "citation": "Cabrita et al., Nature 2020, 577:561-565",
+    "doi": "10.1038/s41586-019-1914-8",
+    "url": "https://www.nature.com/articles/s41586-019-1914-8",
+    "source_location": "Extended Data Fig. 4 of Cabrita et al. 2020",
+    "n_genes": 9
+  },
+  "CYTOLYTIC_ACTIVITY": {
+    "category": "Curated immune signature",
+    "description": "Canonical 2-gene cytolytic activity (CYT) score (geometric mean of GZMA and PRF1)",
+    "citation": "Rooney et al., Cell 2015, 160(1-2):48-61",
+    "doi": "10.1016/j.cell.2014.12.033",
+    "url": "https://www.cell.com/cell/fulltext/S0092-8674(14)01498-1",
+    "notes": "Original Rooney 2015 definition is the 2-gene geometric mean of GZMA and PRF1. A richer 8-gene effector / cytotoxic-core alternative is sometimes used: GZMA, GZMB, GZMH, GZMK, PRF1, GNLY, NKG7, IFNG. We use the canonical 2-gene version here.",
+    "n_genes": 2
+  },
+  "ESTIMATE_STROMAL_SCORE": {
+    "category": "Curated stromal signature",
+    "description": "141-gene Stromal signature used by the ESTIMATE algorithm",
+    "citation": "Yoshihara et al., Nat Commun 2013, 4:2612",
+    "doi": "10.1038/ncomms3612",
+    "url": "https://www.nature.com/articles/ncomms3612",
+    "source_file": "SI_geneset.gmt (StromalSignature track) from the estimate R package",
+    "source_location": "estimate/inst/extdata/SI_geneset.gmt, package homepage https://bioinformatics.mdanderson.org/estimate/",
+    "download_url": "http://download.r-forge.r-project.org/src/contrib/estimate_1.0.13.tar.gz",
+    "n_genes": 141
+  }
+}

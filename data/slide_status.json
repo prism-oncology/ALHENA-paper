@@ -1,0 +1,49 @@
+{
+    "breast_s0": "cancerous",
+    "breast_s1": "cancerous",
+    "breast_s3": "cancerous",
+    "breast_s6": "cancerous",
+
+    "lung_s1": "cancerous",
+    "lung_s3": "cancerous",
+
+    "skin_s1": "healthy",
+    "skin_s2": "cancerous",
+    "skin_s3": "cancerous",
+    "skin_s4": "cancerous",
+
+    "pancreatic_s0": "cancerous",
+    "pancreatic_s1": "cancerous",
+    "pancreatic_s2": "cancerous",
+
+    "heart_s0": "healthy",
+
+    "colon_s1": "cancerous",
+    "colon_s2": "cancerous",
+
+    "kidney_s0": "healthy",
+    "kidney_s1": "cancerous",
+    "kidney_s2": "cancerous",
+
+    "liver_s0": "healthy",
+    "liver_s1": "cancerous",
+
+    "tonsil_s0": "healthy",
+    "tonsil_s1": "healthy",
+
+    "lymph_node_s0": "healthy",
+
+    "ovary_s0": "cancerous",
+    "ovary_s1": "cancerous",
+
+    "brain_s0": "cancerous",
+
+    "bone_marrow_s0": "cancerous",
+    "bone_marrow_s1": "healthy",
+
+    "bone_s0": "healthy",
+
+    "prostate_s0": "cancerous",
+
+    "cervix_s0": "cancerous"
+}

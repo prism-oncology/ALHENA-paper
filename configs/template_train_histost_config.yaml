@@ -1,0 +1,263 @@
+# Example configuration for HistoST training
+
+#########################################
+## Comment and project setup for wandb ##
+#########################################
+logging:
+  mode: "offline"                      # "online" or "offline" [str]
+  project: "HistoST"                   # Name of project to use [str]
+  notes: "training_1"                  # Notes about the run, verbose description [str]
+  log_comment: "training_1"            # Comment to add to name the local logging folder [str]
+  tags:                                # List of tags, e.g., ["baseline", "run1"] [str]
+    - "HistoST"
+    - "training_1"
+  training_id_histost: "training_1"    # Training ID for HistoST (e.g. "training_1") [str]
+  level: "info"                        # Level of logging must be either ["critical", "error", "warning", "info", "debug"] [str] [Optional, defaults to "info"]
+  group: "group1"                      # WandB group tag [str] [Optional, defaults to None]
+
+
+
+#############
+## Seeding ##
+#############
+seed: 42        # Seed for numpy, pytorch etc. [int] [Optional, defaults to 42]
+
+
+
+##############
+## Hardware ##
+##############
+device_type: "cuda"      # Device type: "cuda" or "cpu" or "mps" [str]
+
+
+
+###############################
+## Setting paths and dataset ##
+###############################
+data:
+  dataset_id: "ds_ct1_20x_224_o112"                # Dataset ID [str]
+  training_dataset_id: "ds_ct1_20x_224_o112_1"     # Training dataset ID [str]
+  img_size: 224                                    # Image size [int]
+  train_fold: "train"                              # Fold name str to use for training [str]
+  val_fold: "valid"                                # Fold name str to use for validation [str]
+  cached_dataset: "lmdb_init"                      # Dataset caching. [str] [Optional, defaults to "no"]
+                                                   # Choices are:
+                                                      # * "no" for no caching
+                                                      # * "lmdb_init" for storing the dataset at the beginning of the training using lmdb)
+
+
+
+####################
+## Data selection ##
+####################
+# !! No need to rebuild the lmdb if these parameters are changed !!
+data_select:
+  n_min_cells: 5                   # Minimum number of cells required to keep a sample (i.e. a patch) [int] [Optional, defaults to 0] - WARNING: src/preprocessing/filter_patches_by_min_cells.py must be run first to filter the patches
+  num_train_samples: todo          # Number of training samples in the train set used for training [int] [Necessary for scheduler] - See src/preprocessing/num_train_samples.ipynb - Careful if using n_min_cells filtering
+  scconcept_max_cells: 32          # Number of cells to sample per patch for scConcept embeddings for token-level loss [int] [Optional, defaults to 32]
+  # The ST-graph edge pruning radius is not a train-time knob: it is a precompute parameter
+  # (precompute_novae_teacher.py --edge_distance_threshold, default 100 µm = the Novae
+  # teacher's pretraining Delaunay radius), baked into the st_feat cache fingerprint.
+
+# WARNING: For config to build lmdb cache, n_min_cells must be set to 0.
+
+
+
+###################
+## Model options ##
+###################
+model:
+
+  # 1. H&E ENCODER
+  he:
+    backbone_img_encoder: "uni2h"    # Backbone for the H&E encoder. Implemented are "virchow2", "uni2h", "hoptimus0", and "hoptimus1" [str]
+    use_mlp_head: False              # If a MLP head should be used on top of the backbone [bool] [Optional, defaults to False]
+    he_mlp_hidden_dim: 1024          # Hidden dimension for the MLP head (not used if use_mlp_head is False) [int] [Optional, defaults to 1024]
+    he_mlp_out_dim: 512              # Output dimension for the MLP head (not used if use_mlp_head is False) [int] [Optional, defaults to 512]
+    he_mlp_dropout: 0.1              # Dropout for the MLP head (not used if use_mlp_head is False) [float] [Optional, defaults to 0.1]
+
+
+  # 2. ST TEACHERS (both PRECOMPUTED and FROZEN; the CLIP loop only distills into the H&E encoder)
+  #     * ST-graph branch (patch level): the FROZEN Novae v1.1.1 encoder output `st_feat` (dim 128),
+  #       precomputed OFFLINE by src/dataset/precompute_novae_teacher.py and loaded from the cache.
+  #       The CLIP loop runs NO Novae/GAT forward -- it is a pure lookup + the trainable st_proj head.
+  #     * ST-cell branch (token level): precomputed scConcept per-cell embeddings (used only when
+  #       clip.lambda_token > 0).
+  st:
+    # scConcept token teacher (ST cell branch). Leave null to inherit the Novae teacher's own
+    # scConcept model (recorded in the teacher cache manifest).
+    scconcept_training_id: "training_7"          # scConcept run for the token embeddings (train/trainings/trainings_scConcept/{id}/embeddings) [str|null]
+    scconcept_embeddings_dir: null               # Explicit path to the per-slide scConcept {slide_id}.h5 store, taking PRECEDENCE over scconcept_training_id. Leave null to derive it from scconcept_training_id. Only read when clip.lambda_token > 0 (forced to null otherwise), and overwritten at runtime with the resolved absolute path. [str|null] [Optional, defaults to null]
+    # --- Precomputed frozen Novae ST-graph teacher ---
+    # Selects the st_feat cache under train/training_datasets/{dataset_id}/{training_dataset_id}/
+    # novae_teacher_cache/{novae_training_id}/. Build it first with (novae env):
+    #   python src/dataset/precompute_novae_teacher.py --novae_training_id training_4 \
+    #       --dataset_id ds_ct1_20x_224_o112 --training_dataset_id ds_ct1_20x_224_o112_1
+    # The cache dir, fingerprint, st_feat dim and provenance novae_pretrained_ckpt are resolved at
+    # runtime from the cache manifest.json -- do NOT set them here.
+    novae_training_id: "training_4"              # Novae teacher whose st_feat cache to load [str] [REQUIRED]
+
+
+  # 3. CLIP
+  clip:
+
+    # Patch-level loss options
+    clip_embed_dim: 512               # Embedding dimension for CLIP [int] [Optional, defaults to 512]
+    loss_type: soft_targets_st        # Type of loss to use. Implemented: "classic" (original CLIP, hard one-hot positives); "soft_targets" (similarity-adjusted soft targets, mean of H&E<->H&E and ST<->ST similarity, BLEEP-style, not recommended because H&E is augmented and is also a moving target because of LoRA); "soft_targets_st" (similarity-adjusted soft targets from ST<->ST only, i.e. teacher-defined, H&E view ignored). The soft-target similarity is built from the pre-CLIP-projection teacher embeddings (ST from the precomputed frozen Novae teacher st_feat loaded from the cache; H&E from the pre-projection backbone img_feat) -- not the trainable post-projection embeddings, whose anisotropic drift flattens the target toward uniform. The ST-graph teacher is precomputed (a fixed function of the input), so "soft_targets_st" is collapse-safe by construction; only the mixed "soft_targets" H&E half is a moving/augmented teacher (not recommended). [str] [Optional, defaults to "classic"]
+    target_temperature: 0.1           # Teacher-target softness for soft_targets/_st: targets = softmax(sim / T). float>0 = fixed temperature T, decoupling teacher softness from the learnable logit temperature so it does not drift/harden as logit_scale rises (smaller=sharper, larger=softer; T=0.07 matches the logit_scale init). null = tied to the learnable logit_scale (legacy drifting behaviour). Ignored when loss_type=classic. NOTE: T applies in the (more isotropic) frozen pre-projection teacher cosine space. [float|null] [Optional, defaults to 0.1]
+    lambda_patch: 1.0                 # Weight for the patch-level loss [float] [Optional, defaults to 1.0]
+    patch_local_loss: True            # If true: compute local x global logits (B_local x (B_global)). If false: global x global logits (very expensive) [bool] [Optional, defaults to True] 
+    patch_gather_with_grad: False     # If true: use grad-aware all_gather (cross-rank gradients flow through gathered features - most expensive). If false: gather is detached (no cross-rank grads) [bool] [Optional, defaults to False]
+    patch_reinsert_local: True        # Only used when patch_gather_with_grad=False. If true: overwrite gathered[rank] with local tensors so local chunk keeps grad (rest detached). If false: gathered tensor fully detached (cuts some gradient paths) [bool] [Optional, defaults to True]
+
+    # Token-level loss options
+    token_embed_dim: null             # Token embedding dimension for CLIP (if null, defaults to clip_embed_dim) [int] [Optional, defaults to None]
+    token_loss_type: soft_targets_st  # Type of loss to use for tokens. Implemented: "classic" (multi-positive InfoNCE on real cell_id); "soft_targets" (similarity-adjusted, mean of image-cell<->image-cell and ST-cell<->ST-cell similarity, NOT recommended because H&E is augmented and also is a moving target because of LoRA); "soft_targets_st" (similarity-adjusted from ST-cell<->ST-cell only, teacher-defined). The soft-target similarity is built from the FROZEN pre-projection teachers (ST-cell from the precomputed scConcept embeddings scconcept_emb; image-cell from the pooled pre-img_tok_proj features) -- NOT the trainable post-projection cell embeddings. NOTE: the ST-cell teacher (precomputed scConcept scconcept_emb) is always frozen, so token "soft_targets_st" is collapse-safe; only the mixed "soft_targets" H&E half is a moving + augmented teacher (not recommended). [str] [Optional, defaults to "classic"]
+    token_target_temperature: 0.1     # Same as target_temperature, for the token-level soft targets (uses logit_scale_token). float>0 = fixed temperature; null = tied to learnable logit_scale_token. Ignored when token_loss_type=classic. NOTE: applies in the frozen pre-projection teacher cosine space. [float|null] [Optional, defaults to 0.1]
+    lambda_token: 0.5                 # Weight for the token-level loss [float] [Optional, defaults to 0.0]
+    lambda_token_warmup_epochs: 5     # Number of epochs for warming up the token loss weight from 0 to lambda_token [int] [Optional, defaults to 0 (no warmup)]
+    token_local_loss: True            # If true: compute local x global token logits (N_local x N_global). If false: global x global token logits (N_global x N_global) (usually prohibitively expensive) [bool] [Optional, defaults to True]
+    token_gather_with_grad: False     # If true: grad-aware gather for token features (cross-rank gradients - expensive). If false: gather is detached (no cross-rank grads) [bool] [Optional, defaults to False]
+    token_reinsert_local: True        # Only used when token_gather_with_grad=False. If true: local chunk of gathered token features keeps grad; if false: gathered token features fully detached (more asymmetry) [bool] [Optional, defaults to True]
+
+    # Teacher-centering of the soft target
+    center_teacher_target: true       # If true, center each L2-normalized FROZEN teacher vector by its precomputed global mean before building softmax(sim/T): c = normalize(n - m). Removes the teacher's dominant shared (anisotropic) component so the soft target sharpens negatives toward 0 (a false-negative corrector) instead of diffuse label-smoothing; the instance-positive (self-cosine=1) is preserved. Applies to BOTH frozen ST teachers (Novae st_feat + scConcept cls_emb), never the mixed-variant H&E half. REQUIRES the artifact teacher_center_means.h5 (run src/dataset/precompute_teacher_mean.py after precompute_novae_teacher.py); training fails loud if it is missing or its fingerprint / n_min_cells / scConcept-model provenance does not match. No-op when the relevant branch is loss_type=classic. [bool] [Optional, defaults to True]
+
+  # 4. Pretrained histost model from previous training
+  pretrained_histost: null       # Full path to a pretrained model from this project (.pth file) [str] [Optional, defaults to None]
+
+
+
+######################
+## Training options ##
+######################
+# NB: Performance is best when model dimensions (batch size, image size, embedded layers, dense layers) are multiples of 8, due to the hardware specificities of Tensor cores.
+training:
+  
+  batch_size: 128                # Training Batch size [int]  [Optional, defaults to 128] /!\ if multi-gpu, it is the batch_size for each gpu thus the effective batch size is batch_size * num_gpus /!\
+  num_workers: 23                # Number of workers for the DataLoader [int] [Optional, defaults to 23]
+  epochs: 1000                   # Number of Training Epochs to use [int]
+  
+  optimizer_hyperparameters:     # Hyperparamaters for the optimizers for AdamW
+    lr: 0.00001                  # Learning-rate for AdamW [float] [Optional, using 1e-3]
+    betas: [0.9, 0.999]          # Betas for AdamW [list[float]] [Optional, using [0.9, 0.999]]
+    weight_decay: 0.01           # Weight decay for AdamW [float] [Optional, using 0.01]
+    eps: 0.0001                  # Eps for AdamW [float] [Optional, using 1e-8] - Increase eps when training in mixed precision: NVIDIA recommends raising epsilon by 1e3, i.e. 1e-04 instead of the 1e-07 default, which avoids NaNs at no measurable cost to convergence.
+
+  early_stopping:
+    patience: 300                # Number of validation checks without improvement before stopping. [int] [Optional, defaults to None = disabled]
+    monitor: "val_loss"          # Quantity used for early stopping. [str] [Optional, defaults to "val_loss"]
+                                 # Supported values:
+                                 #   - "val_loss"
+                                 #   - any key from val_metrics, e.g.: "val_patch_loss", "val_acc_i2st", "val_global_acc_i2st", "val_global_ndcg_i2st_top100"
+                                 # IMPORTANT: choose a metric that exists at every validation epoch. Avoid intermittent metrics such as CKA unless training.cka_every matches every validation pass.
+    mode: "min"                  # Whether the monitor should decrease ("min") or increase ("max"). [str] [Optional, defaults to "min"]
+  
+  scheduler:                     # Learning rate scheduler.
+    scheduler_type: "cosine"     # Name of learning rate scheduler. Implemented are: "constant" or "cosine". [str] [Optional, defaults to "constant"]
+    warmup_steps: 1000           # Number of warmup steps (NOT epochs) [int] [Optional, defaults to 0]
+
+  batch_slide_mode: mixed        # Slide sampling mode in a batch. Implemented are "single_slide" (all samples from the same slide), or "mixed" (samples from different slides), or "alternate" (alternate between both) [str] [Optional, defaults to "mixed"]
+  alternate_start_with: mixed    # If batch_slide_mode is "alternate", which mode to start with: "single_slide" or "mixed" [str] [Optional, defaults to "mixed"]
+  val_step_slide_mode: inherit   # Slide sampling mode for validation step loader. Implemented are "single_slide" (all samples from the same slide) or "mixed" (samples from different slides) or "inherit" (same as training, including alternate option) [str] [Optional, defaults to "inherit"]
+  sampling_strategy: "random"    # Sampling strategy (Always random for "single_slide" batches). Implemented are "random", "cell", "tissue", "cell+tissue" and "slide_headcap" [str] [Optional, defaults to "random"]
+  sampling_gamma: 0.85           # Gamma for balancing sampling (ignored if sampling_strategy is "random" or "slide_headcap") [float] [Optional, defaults to 0.5] - Must be between 0 (equal weights) and 1 (100% oversampling)
+  headcap_max_oversampling: 1.3  # Only for sampling_strategy="slide_headcap". Memorization guard: the per-slide cap C is DERIVED at runtime as the smallest cap keeping "no slide repeated more than this many times per epoch"; single-slide tissues are exempt (held at weight 1). Must be >= 1. [float] [Optional, defaults to 1.3]
+  headcap_C: null                # Only for sampling_strategy="slide_headcap". Optional explicit per-slide cap to PIN (for exact reproducibility, since the derived C is not stored in the config snapshot). null => derive from headcap_max_oversampling. [float|null] [Optional, defaults to null]
+  ignore_cat: ['Unknown']        # List of categories to ignore during the sampling strategy for balancing (ignored if sampling_strategy is "random" or "slide_headcap"). [list[str]] [Optional, defaults to null]
+  
+  mixed_precision: True          # Mixed precision flag [bool] [Optional, default False]
+  amp_dtype: "bf16"              # AMP data-type (ignored if mixed_precision is False). Allowed: "fp16" | "bf16" [str] [Optional, default "bf16"]
+  
+  eval_every: 1                  # Number of training epochs between every validation [int] [Optional, default 1] - If 1, alternating training and validation as commonly used.
+  cka_every: 1                   # Number of training epochs between every CKA evaluation [int] [Optional, default 1] - WARNING: should be a multiple of eval_every
+  save_every: 1                  # Number of training epochs between every checkpoint save, i.e. a checkpoint is written when epoch % save_every == 0 [int] [Optional, default 1] - Keep always 1 because the wandb log and the json metrics are saved for every epoch, so this is safer to have save_every to 1 to match this behavior
+  
+  HE_training_option: "lora"     # HE training option [str] [Optional, defaults to "lora"] 
+                                 # Implemented are:
+                                     # * "train" for training the whole H&E encoder
+                                     # * "freeze" for freezing the H&E encoder and train only the pooling and proj layers, and MLP head if use_mlp_head is True
+                                     # * "lora" for freezing the H&E encoder but using LoRa + train also the pooling and proj layers, and MLP head if use_mlp_head is True
+  lora_rank: 128                 # Rank for LoRa [int] [Optional, defaults to 64]
+  lora_alpha: 16                 # Lambda for LoRa [float] [Optional, defaults to 16]
+  
+
+
+#########################
+## Advanced scheduling ##
+#########################
+# Advanced scheduling for two-stage training of CLIP heads (i.e. projection heads):
+#   - warmup phase: train heads normally for N epochs
+#   - freeze phase: freeze heads (lr=0) for rest of training to force HE representation change with LoRa
+# NB: This requires advanced_scheduling.enabled = True
+# NB: This requires HE_training_option==lora, use_mlp_head==False, and a resolved Novae-teacher cache (model.st.novae_training_id). The ST teacher is precomputed + always frozen.
+# NOTE: every LR / weight-decay below applies to FRESH RUNS ONLY. On any resume (same-run or
+# cross-run --resume_state_from_checkpoint) torch's Optimizer.load_state_dict keeps the CHECKPOINT's
+# param_groups, so changing a value here has NO effect: start a fresh run to change it. The only
+# exception is lr_heads, which is re-applied if the head schedule un-freezes the heads. What the
+# optimizer actually ran with is recorded per checkpoint under `effective_optimizer` (its
+# `divergences` list names any key that was not in force).
+advanced_scheduling:
+  enabled: True                # If true, apply advanced scheduling for CLIP heads (two-stage warmup then freeze). [bool] [Optional, defaults to False]
+  clip_head_warmup_epoch: 1    # Epoch at which to switch from warmup to freeze for CLIP heads. Must be >=0. [int] [Optional, defaults to 1]
+
+  # Per-block LRs (the scheduler scales them all together under cosine/warmup)
+  lr_lora: 1.0e-4              # LoRa learning rate [float] [Optional, defaults to training.optimizer_hyperparameters.lr]
+  lr_heads: 1.0e-3             # Projection heads learning rate [float] [Optional, defaults to training.optimizer_hyperparameters.lr]
+  lr_logit: 1.0e-5             # Logit scales learning rate [float] [Optional, defaults to training.optimizer_hyperparameters.lr * 0.1]
+
+  weight_decay_lora: 0.2       # Weight decay on the LoRa factors; regularizes the update dW=scaling*B@A toward the pretrained backbone (anti-forgetting prior). 0.2 follows SEAL. [float] [Optional, defaults to 0.0]
+  weight_decay_heads: 0.01     # Weight decay for projection heads [float] [Optional, defaults to training.optimizer_hyperparameters.weight_decay]
+  weight_decay_other: 0.01     # Weight decay for the other parameters that are allowed to decay [float] [Optional, defaults to training.optimizer_hyperparameters.weight_decay]
+
+
+
+#####################################
+## Transformations for H&E patches ##
+#####################################
+# Here all options are given. Remove transformations by removing them from this section (defaults to {}) or by setting their probability to 0.
+he_transformations:
+  hed_augmentation:             # H&E specific augmentation
+    p: 0.5                          # * Probability [float, between 0 and 1]
+    sigma: 0.2                      # * Sigma for Gaussian noise [float]
+  randomrotate90:               # RandomRotation90
+    p: 0.75                         # * Probability [float, between 0 and 1]
+  horizontalflip:               # HorizontalFlip
+    p: 0.5                          # * Probability [float, between 0 and 1]
+  verticalflip:                 # VerticalFlip
+    p: 0.5                          # * Probability [float, between 0 and 1]
+  downscale:                    # Downscaling
+    p: 0.2                          # * Probability [float, between 0 and 1]
+    scale_range: [0.70, 0.95]       # * Scale range [list[float], between 0 and 1 for each entry]
+  blur:                         # Blur
+    p: 0.2                          # * Probability [float, between 0 and 1]
+    blur_limit: [3, 5]              # * Blur limit [list[int], between 0 and 9 for each entry] / Only odd kernel sizes are used to ensure the blur has a clear center pixel
+  gaussnoise:                   # GaussianNoise
+    p: 0.15                         # * Probability [float, between 0 and 1]
+  randombrightnesscontrast:     # RandomBrightnessContrast
+    p: 0.4                          # * Probability of applying
+    brightness_limit: 0.2                 # +/- 0.1 (10%) brightness
+    contrast_limit: 0.2                   # +/- 0.1 (10%) contrast
+  superpixels:                  # SuperPixels
+    p: 0.1                          # * Probability [float, between 0 and 1]
+  zoomblur:                     # ZoomBlur
+    p: 0.1                          # * Probability [float, between 0 and 1]
+
+# Note: the geometric augmentations RandomSizedCrop and ElasticTransform are intentionally absent:
+# they move / drop cells relative to the fixed precomputed Novae-teacher st_feat (and the token-branch
+# cell_id_map), breaking the H&E<->ST alignment the offline precompute assumes. Only isometric
+# (flip / rotate90) + appearance augmentations remain; CenterCrop is an identity (resize_size ==
+# crop_size == 224 for every backbone).
+
+# There is no ST gene augmentation block. Both ST teachers are precomputed and frozen (the Novae
+# st_feat cache and the scConcept token embeddings), so the ST targets are constant by construction
+# and there is nothing to augment on the ST side. Only the H&E encoder is trained; keeping the ST
+# side fixed is what avoids moving / noisy targets.
+
+
+
+########################
+## Validation metrics ##
+########################
+validation:
+  within_slide_min_patches: 16   # Minimum number of patches a slide must have to be kept in the always-on within-slide retrieval diagnostic (gallery restricted to the query's own slide, macro-averaged over slides) [int] [Optional, defaults to 16] - The effective floor is max(this, max_topk + 1) so the gallery always exceeds top-k; slides below it are skipped, excluded from the macro average and counted in n_slides_skipped.

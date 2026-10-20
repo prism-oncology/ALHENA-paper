@@ -1,0 +1,46 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+wheels/
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Testing / coverage
+.cache
+.coverage
+.coverage.*
+.pytest_cache/
+.tox/
+htmlcov/
+
+# Notebooks
+.ipynb_checkpoints
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+._*
+
+# Experiment tracking and local run outputs
+wandb/
+mlruns/
+outputs/
+output/
+*.log
+
+# Generated reports
+access_reports/

@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it using the metadata in this file.
+type: software
+title: ALHENA-paper
+abstract: "Code for the training and evaluation of ALHENA, an H&E encoder distilled from transcriptomic foundation models for multi-scale slide analysis."
+license: BSD-3-Clause
+repository-code: https://github.com/prism-oncology/ALHENA-paper
+keywords:
+  - histopathology
+  - spatial-transcriptomics
+  - cell-typing
+  - foundation-model
+authors:
+  - family-names: Giraud-Sauveur
+    given-names: Félicie
+    email: felicie.giraudsauveur@gmail.com
+  - family-names: Blampey
+    given-names: Quentin
+  - family-names: Marza
+    given-names: Pierre
+  - family-names: Benkirane
+    given-names: Hakim
+  - family-names: Vakalopoulou
+    given-names: Maria
+  - family-names: Cournède
+    given-names: Paul-Henry
+  - family-names: Christodoulidis
+    given-names: Stergios
+preferred-citation:
+  type: unpublished
+  title: "ALHENA, an H&E encoder distilled from transcriptomic foundation models for multi-scale slide analysis"
+  notes: Manuscript under review.
+  authors:
+    - family-names: Giraud-Sauveur
+      given-names: Félicie
+    - family-names: Blampey
+      given-names: Quentin
+    - family-names: Marza
+      given-names: Pierre
+    - family-names: Benkirane
+      given-names: Hakim
+    - family-names: Vakalopoulou
+      given-names: Maria
+    - family-names: Cournède
+      given-names: Paul-Henry
+    - family-names: Christodoulidis
+      given-names: Stergios

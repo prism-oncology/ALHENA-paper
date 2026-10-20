@@ -1,0 +1,45 @@
+# Config of the Novae ST-graph teacher run training_4
+# scConcept-node regime (embedding_name="X_scConcept").
+#
+# Used by src/pretraining_ST/novae_pretraining_st/_2_novae_pretraining.py
+#
+# model_kwargs defaults are the published `prism-oncology/novae-scConcept-multi-species`
+
+project: novae_pretraining_st
+
+wandb_init_kwargs:
+  name: training_4   # overridden by the script to the --novae_training_id
+
+model_kwargs:
+  embedding_name: "X_scConcept"   # str; GAT node feature = precomputed per-cell scConcept obsm (cell_embedder=None, no internal preprocessing)
+  embedding_size: 512             # int; scConcept dim (corpus40M-model30M = 512; published multi-species = 1024 for the 170M model)
+  heads: 16                       # int; GAT attention heads
+  num_layers: 12                  # int; GAT depth
+  output_size: 128                # int; Novae representation dim
+  hidden_size: 256                # int; GAT hidden dim
+  num_prototypes: 1024            # int; SwAV prototypes
+  temperature: 0.1                # float; SwAV temperature
+  panel_subset_size: 0            # float; unused in the embedding regime (kept 0)
+  background_noise_lambda: 0.001  # float; embedding-regime additive noise ~ Normal(0, lambda)
+  sensitivity_noise_std: 0.0005   # float; multiplicative augmentation factor = 1 + N(0, std) (scConcept-regime value; NOT the raw-count default 0.05)
+  dropout_rate: 0.0               # float; augmentation gene dropout (deprecated path)
+  min_prototypes_ratio: 0.3       # float; slide-specific prototype fraction for init_slide_queue
+  batch_size: 256                 # int; graph mini-batch size
+  n_hops_local: 2                 # int; local neighborhood hops
+  n_hops_view: 2                  # int; augmented-view neighborhood hops
+
+fit_kwargs:
+  max_epochs: 40        # int; scConcept-regime schedule (concept_r1.yaml / continue1.yaml)
+  lr: 0.00003           # float; 3e-5
+  accelerator: "gpu"    # "gpu" | "cpu" | "auto"
+  num_workers: 20        # int; dataloader workers (also used by ValidationCallback / compute_representations)
+  patience: 6           # int; EarlyStopping patience
+  min_delta: 0.025      # float; EarlyStopping min_delta
+
+post_training:
+  n_domains: [15, 20, 25]   # list[int]; domain granularities for the validation metrics + maps
+  log_metrics: true         # bool; FIDE/JSD/MNE always written to validation/metrics.json
+  log_domains: true         # bool; domain maps always written to figures/domains_n{N}.png
+  log_umap: false           # bool; post-training does not compute UMAP
+  save_h5ad: true           # bool; write per-own-slide post-training h5ad into results_h5ad/
+  delete_X: true            # bool; drop raw counts X (and counts layer) before writing those h5ad

@@ -1,0 +1,11 @@
+{
+  "T_NK": "Immune",
+  "B_Plasma": "Immune",
+  "Myeloid": "Immune",
+  "Blood_vessel": "Stromal_Vascular",
+  "Fibroblast_Myofibroblast": "Stromal_Vascular",
+  "Epithelial": "Epithelial_Melanocyte",
+  "Specialized": "Unknown",
+  "Melanocyte": "Epithelial_Melanocyte",
+  "Unknown": "Unknown"
+}

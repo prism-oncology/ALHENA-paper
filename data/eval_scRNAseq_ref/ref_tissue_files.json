@@ -1,0 +1,17 @@
+{
+  "Breast": "breast.h5ad",
+  "BoneMarrow": "bone_marrow.h5ad",
+  "Cervix": "cervix.h5ad",
+  "Colon": "intestine.h5ad",
+  "Heart": "heart.h5ad",
+  "Kidney": "kidney.h5ad",
+  "Liver": "liver_cell.h5ad",
+  "Lung": "lung.h5ad",
+  "LymphNode": "tonsil.h5ad",
+  "Ovary": "ovary.h5ad",
+  "Pancreatic": "pancreas_cell.h5ad",
+  "Prostate": "prostate.h5ad",
+  "Skin": "skin.h5ad",
+  "Tonsil": "tonsil.h5ad",
+  "Uterus": "uterus.h5ad"
+}

@@ -1,0 +1,129 @@
+# training_52
+
+logging:
+  mode: offline
+  project: HistoST
+  notes: 'training_52'
+  log_comment: training_52
+  tags:
+  - HistoST
+  - training_52
+  - control_lesion_battery
+  training_id_histost: training_52
+  level: info
+  group: control_lesion_battery
+seed: 42
+device_type: cuda
+data:
+  dataset_id: ds_ct1_20x_224_o112
+  training_dataset_id: ds_ct1_20x_224_o112_1
+  img_size: 224
+  train_fold: train
+  val_fold: valid
+  cached_dataset: lmdb_init
+data_select:
+  n_min_cells: 5
+  num_train_samples: 327955
+  scconcept_max_cells: 32
+model:
+  he:
+    backbone_img_encoder: uni2h
+    use_mlp_head: false
+    he_mlp_hidden_dim: 1024
+    he_mlp_out_dim: 512
+    he_mlp_dropout: 0.1
+  st:
+    scconcept_training_id: training_7
+    novae_training_id: training_4
+  clip:
+    clip_embed_dim: 512
+    loss_type: soft_targets_st
+    target_temperature: 0.1
+    lambda_patch: 0.0
+    patch_local_loss: true
+    patch_gather_with_grad: false
+    patch_reinsert_local: true
+    token_embed_dim: null
+    token_loss_type: soft_targets_st
+    token_target_temperature: 0.1
+    lambda_token: 0.5
+    lambda_token_warmup_epochs: 0
+    token_local_loss: true
+    token_gather_with_grad: false
+    token_reinsert_local: true
+    center_teacher_target: true
+  pretrained_histost: null
+training:
+  batch_size: 128
+  num_workers: 23
+  epochs: 20
+  optimizer_hyperparameters:
+    lr: 1.0e-05
+    betas:
+    - 0.9
+    - 0.999
+    weight_decay: 0.01
+    eps: 0.0001
+  early_stopping:
+    patience: null
+    monitor: val_loss
+    mode: min
+  scheduler:
+    scheduler_type: cosine
+    warmup_steps: 500
+  batch_slide_mode: mixed
+  alternate_start_with: mixed
+  val_step_slide_mode: inherit
+  sampling_strategy: slide_headcap
+  sampling_gamma: 0.85
+  headcap_max_oversampling: 1.3
+  headcap_C: null
+  ignore_cat:
+  - Unknown
+  mixed_precision: true
+  amp_dtype: bf16
+  eval_every: 1
+  cka_every: 1
+  HE_training_option: lora
+  lora_rank: 64
+  lora_alpha: 32
+  save_every: 1
+advanced_scheduling:
+  enabled: true
+  clip_head_warmup_epoch: 999
+  lr_lora: 0.0001
+  lr_heads: 0.001
+  lr_logit: 1.0e-05
+  weight_decay_lora: 0.2
+  weight_decay_heads: 0.01
+  weight_decay_other: 0.01
+he_transformations:
+  hed_augmentation:
+    p: 0.5
+    sigma: 0.2
+  randomrotate90:
+    p: 0.75
+  horizontalflip:
+    p: 0.5
+  verticalflip:
+    p: 0.5
+  downscale:
+    p: 0.2
+    scale_range:
+    - 0.7
+    - 0.95
+  blur:
+    p: 0.2
+    blur_limit:
+    - 3
+    - 5
+  gaussnoise:
+    p: 0.15
+  randombrightnesscontrast:
+    p: 0.4
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+  superpixels:
+    p: 0.1
+  zoomblur:
+    p: 0.1
